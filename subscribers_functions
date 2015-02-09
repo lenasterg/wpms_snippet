@@ -1,0 +1,55 @@
+/**
+ * Remove dashboard access from subscribers
+ * @global type $wp_admin_bar
+ * @global type $wpdb
+ * @return type
+ * @version 1, 9/2/2015
+ */
+function ls_remove_dashboard_access_from_subscribers() {
+    global $wp_admin_bar, $wpdb;
+    // Don't show for logged out users or single site mode.
+    if ( ! is_user_logged_in() || ! is_multisite() )
+	return;
+    foreach ( ( array ) $wp_admin_bar->user->blogs as $blog ) {
+	$menu_id = 'blog-' . $blog->userblog_id . '-d';
+	switch_to_blog( $blog->userblog_id );
+	if ( ! (current_user_can( get_post_type_object( 'post' )->cap->create_posts )) ) {
+	    $wp_admin_bar->remove_menu( $menu_id );
+	    $wp_admin_bar->remove_menu( 'site-name' );
+	}
+	restore_current_blog();
+    }
+}
+add_action( 'wp_before_admin_bar_render', 'ls_remove_dashboard_access_from_subscribers' );
+
+
+/**
+ * Remove mysites dashboard link to site subscribers
+ * @global type $user_blog
+ * @param type $blog_actions
+ * @return string
+ */
+function ls_remove_mysites_dashboard_from_subscribers( $blog_actions ) {
+    global $user_blog;
+    switch_to_blog( $user_blog->userblog_id );
+    if ( ! (current_user_can( get_post_type_object( 'post' )->cap->create_posts )) ) {
+	$actions = "<a href='" . esc_url( get_home_url( $user_blog->userblog_id ) ) . "'>" . __( 'Visit' ) . "</a>";
+    } else {
+	$actions = "<a href='" . esc_url( get_home_url( $user_blog->userblog_id ) ) . "'>" . __( 'Visit' ) . "</a> | <a href='" . esc_url( get_admin_url( $user_blog->userblog_id ) ) . "'>" . __( 'Dashboard' ) . "</a>";
+    }
+    restore_current_blog();
+    return $actions;
+}
+add_filter( 'myblogs_blog_actions', 'ls_remove_mysites_dashboard_from_subscribers' );
+
+/**
+ * Disable wp-admin access to subscribers - Redirect them back to site
+ */
+function ls_redirect_wpadmin_from_subscribers() {
+    if ( ! (current_user_can( get_post_type_object( 'post' )->cap->create_posts )) ) {
+	wp_redirect( site_url() );
+	exit;
+    }
+}
+
+add_action( 'admin_init', 'ls_redirect_wpadmin_from_subscribers' );
