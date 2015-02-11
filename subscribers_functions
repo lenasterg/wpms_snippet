@@ -44,9 +44,10 @@ add_filter( 'myblogs_blog_actions', 'ls_remove_mysites_dashboard_from_subscriber
 
 /**
  * Disable wp-admin access to subscribers - Redirect them back to site
+ *@version 2, 11/2/2014
  */
 function ls_redirect_wpadmin_from_subscribers() {
-    if ( ! (current_user_can( get_post_type_object( 'post' )->cap->create_posts )) ) {
+    if ( ! (current_user_can( get_post_type_object( 'post' )->cap->create_posts )) && ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) ) {
 	wp_redirect( site_url() );
 	exit;
     }
