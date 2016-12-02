@@ -1,0 +1,15 @@
+/**
+ * Send email to super admin when the blog's available space is less than 200MB
+ */
+function ls_blog_space_mail() {
+    $space_left = round( get_upload_space_available() / 1024 / 1024 );
+    if ( $space_left < 200 ) {
+	$message = 'Site ' . get_site_url() . ' has only ' . $space_left . 'MB space left. '
+		. 'If you wish to expand the available space visit  ' . network_admin_url( 'site-settings.php?id=' . get_current_blog_id() ) . '  and increase the  "' . __( 'Site Upload Space Quota' ) . '."';
+	wp_mail( get_site_option( 'admin_email' ), "[ " . wp_specialchars_decode( get_option( 'blogname' ) ) . " ].  Low available space", $message );
+    }
+}
+
+if ( is_multisite() ) {
+    add_action( 'activity_box_end', 'ls_blog_space_mail' );
+}
