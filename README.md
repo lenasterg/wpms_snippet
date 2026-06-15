@@ -1,2 +1,2 @@
 # wpms_snippet
-Functions for customize wordpress multisite
+Functions for customize WordPress multisite
